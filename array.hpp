@@ -29,8 +29,7 @@ class Array {
   T& at(int line, int column) { return array[line][column]; }
 
   template <int lines2, int columns2>
-  void copy(Array<T, lines2, columns2> array, int start_lines,
-            int start_columns) {
+  void copy(Array<T, lines2, columns2> array, int start_lines, int start_columns) {
     for (int i = 0; i < lines2; i++) {
       for (int j = 0; j < columns2; j++) {
         this->array[i + start_lines][j + start_columns] = array.at(i, j);
