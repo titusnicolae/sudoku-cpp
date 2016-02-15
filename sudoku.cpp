@@ -1,59 +1,75 @@
 #include <iostream>
+#include <vector>
 #include <stdexcept>
+#include <iterator>
 #include "array.hpp"
 using namespace std;
 
-typedef Array<int, 3, 3> Square;
+typedef Array<vector<int>, 3, 3> Square;
 typedef Array<Square, 3, 3> Table;
 
 class Sudoku {
   Table table;
 
  public:
-  Sudoku() : table(Array<int, 3, 3>(0)) {
-    table = Table(Square(0));
+  Sudoku() {
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
-        table.at(i, j) = square(i * 3 + j + 1);
+        table.at(i, j) = square(j * 3 + i + 1);
       }
     }
   }
 
   friend ostream& operator<<(ostream& stream, Sudoku& sudoku) {
-    Array<char, 11, 11> buffer(' ');
+    const int N = 35;
+    Array<char, N, N> buffer(' ');
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
         for (int k = 0; k < 3; k++) {
           for (int l = 0; l < 3; l++) {
-            buffer.at(i * 4 + k, j * 4 + l) =
-                sudoku.table.at(i, j).at(k, l) + '0';
+            for (int m = 0; m < sudoku.table.at(i, j).at(k, l).size(); m++) {
+              buffer.at((i * 3 + k) * 4 + m / 3, (j * 3 + l) * 4 + m % 3) =
+                  sudoku.table.at(i, j).at(k, l)[m] + '0';
+            }
           }
         }
       }
     }
-    for (int i = 0; i < 11; i++) {
-      buffer.at(i, 3) = buffer.at(i, 7) = '|';
-      buffer.at(3, i) = buffer.at(7, i) = '-';
-    }
-    for (int i = 3; i < 11; i += 4) {
-      for (int j = 3; j < 11; j += 4) {
-        buffer.at(i, j) = '+';
+
+    for (int i = 0; i < 8; i++) {
+      for (int k = 0; k < N; k++) {
+        buffer.at(k, i * 4 + 3) = '|';
+        buffer.at(i * 4 + 3, k) = '-';
       }
     }
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        buffer.at(i * 4 + 3, j * 4 + 3) = '+';
+      }
+    }
+
     stream << buffer;
     return stream;
   }
+  
+  vector<int> filter(int x, int y) {
+    int squarex = x/3, squarey=y/3;
+    int posx = x%3, posy = y%3;
+    vector<int> ret(table.at(squarex, squarey).at(posx, posy));
 
- private:
+    copy(ret.begin(), ret.end(), ostream_iterator<int>(cout, " "));
+    return ret;
+  }
+private:
   Square square(int offset = 1) {
     if (offset < 1 or offset > 9) {
       throw logic_error("square assert fail");
     }
 
-    Square ret(0);
+    Square ret;
     for (int i = 0; i < 3; i++) {
       for (int j = 0; j < 3; j++) {
-        ret.at(i, j) = offset;
+        ret.at(i, j).push_back((offset - 1) % 9 + 1);
         offset = offset % 9 + 1;
       }
     }
@@ -64,5 +80,6 @@ class Sudoku {
 int main() {
   Sudoku sudoku;
   cout << sudoku;
+  sudoku.filter(5, 5);
   return 0;
 }
