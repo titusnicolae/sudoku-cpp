@@ -66,5 +66,14 @@ TEST_CASE("get column", "[region]") {
 }
 
 TEST_CASE("get square", "[region]") {
+  //todo
+}
 
+TEST_CASE("shuffle", "[shuffle]") {
+  Sudoku s;
+  REQUIRE(s.is_valid()==1);
+  for(int i=0;i<100;i++) {
+    s.shuffle(1);
+    REQUIRE(s.is_valid()==1);
+  }
 }

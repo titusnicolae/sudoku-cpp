@@ -12,8 +12,8 @@ using namespace std;
 typedef Array<vector<int>, 3, 3> Square;
 typedef Array<Square, 3, 3> Table;
 
-//std::random_device rd;
-std::mt19937 gen(0);//rd());
+std::random_device rd;
+std::mt19937 gen(rd());
 set<int> one_to_nine({1,2,3,4,5,6,7,8,9});
 
 set<int> operator-=(set<int>& first, set<int> second){
@@ -126,10 +126,15 @@ class Sudoku {
     while((second=random_op(gen))==first);
     return make_pair(first, second);
   }
+  static int random(int start, int end) {
+    std::uniform_int_distribution<> random_op(start, end); //cache 
+    return random_op(gen);
+  }
 
   void shuffle(int steps) {
     std::uniform_int_distribution<> random_op(0, 3);
     pair<int,int> temp;
+    int l;
     for(int i=0;i<steps;i++) {
       switch(random_op(gen)) {
         case 0: 
@@ -143,13 +148,15 @@ class Sudoku {
         break;
 
         case 2: 
-          temp=random_pair(0,8);
-          swap_line(temp.first, temp.second);
+          temp = random_pair(0, 2);
+          l = random(0, 2)*3;
+          swap_line(l+temp.first, l+temp.second);
         break;
 
         case 3: 
-          temp=random_pair(0,8);
-          swap_column(temp.first, temp.second);
+          temp = random_pair(0, 2);
+          l = random(0, 2)*3;
+          swap_column(l+temp.first, l+temp.second);
         break;
       }
     }
@@ -258,29 +265,29 @@ class Sudoku {
     }
     return true;
   }
-  bool is_valid() {
+  int is_valid() {
     for(int lb: {0,1,2})for(int cb: {0,1,2})for(int l: {0,1,2})for(int c: {0,1,2}){
       auto& e= table.at(lb, cb).at(l, c);
       if(e.size()!=1) {
-        return false;
+        return -1;
       }
     } 
     for(int i=0;i<9;i++) {
       if(get_line(i)!=one_to_nine){
-        return false;
+        return -2;
       }
       if(get_col(i)!=one_to_nine){
-        return false;
+        return -3;
       }
     }
     for(int l: {0,1,2}) {
       for(int c: {0,1,2}) {
         if(get_square(l,c)!=one_to_nine){
-          return false;
+          return -4;
         }
       }
     }
-    return true;
+    return 1;
   }
    
 private:
