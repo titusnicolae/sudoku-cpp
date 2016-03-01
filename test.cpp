@@ -40,18 +40,17 @@ TEST_CASE("swap column", "[swap]") {
 }
 
 void clear_except_first_square(Sudoku& s) {
-  for(int line=0;line<9;line++) {
-    for(int col=0;col<9;col++) {
-      if(line<3 and col<3) continue;
-      s.at(line/3, col/3).at(line%3, col%3).clear();
+  for (int line = 0; line < 9; line++) {
+    for (int col = 0; col < 9; col++) {
+      if (line < 3 and col < 3) continue;
+      s.at(line / 3, col / 3).at(line % 3, col % 3).clear();
     }
-  } 
+  }
 }
 
 TEST_CASE("get line", "[region]") {
   Sudoku s1;
   clear_except_first_square(s1);
-  for(int x: s1.get_line(0)) cout<<x<<" ";
   REQUIRE(s1.get_line(0) == set<int>({1, 2, 3}));
   REQUIRE(s1.get_line(1) == set<int>({4, 5, 6}));
   REQUIRE(s1.get_line(2) == set<int>({7, 8, 9}));
@@ -66,14 +65,43 @@ TEST_CASE("get column", "[region]") {
 }
 
 TEST_CASE("get square", "[region]") {
-  //todo
+  // todo
 }
 
 TEST_CASE("shuffle", "[shuffle]") {
   Sudoku s;
-  REQUIRE(s.is_valid()==1);
-  for(int i=0;i<100;i++) {
+  REQUIRE(s.is_valid() == 1);
+  for (int i = 0; i < 100; i++) {
     s.shuffle(1);
-    REQUIRE(s.is_valid()==1);
+    REQUIRE(s.is_valid() == 1);
   }
+}
+
+TEST_CASE() {
+  Array<int, 10, 10> a(1), b(1), c(2);
+  REQUIRE(a == b);
+  REQUIRE(a != c);
+}
+
+TEST_CASE("equality inequality operators") {
+  Sudoku s1, s2;
+  REQUIRE(s1 == s2);
+  REQUIRE(not(s1 != s2));
+  REQUIRE(s1.at(0, 0) == s2.at(0, 0));
+  REQUIRE(not(s1.at(0, 0) != s2.at(0, 0)));
+}
+
+TEST_CASE("solve newspaper sudoku", "[solve]") {
+  Sudoku s({{0, 0, 9, 4, 2, 1, 0, 0, 3},
+            {1, 0, 3, 7, 5, 0, 2, 0, 0},
+            {0, 0, 0, 0, 3, 8, 0, 0, 0},
+            {5, 0, 0, 0, 0, 7, 0, 0, 9},
+            {0, 0, 0, 0, 6, 0, 0, 0, 0},
+            {4, 0, 0, 1, 0, 0, 0, 0, 2},
+            {0, 0, 0, 3, 4, 0, 0, 0, 0},
+            {0, 0, 7, 0, 1, 6, 8, 0, 4},
+            {9, 0, 0, 0, 0, 5, 6, 0, 0}});
+  s.solve();
+  cout << s;
+  REQUIRE(s.is_valid() == 1);
 }

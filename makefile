@@ -2,7 +2,7 @@ all: sudoku.hpp array.hpp
 	clang++ -o main main.cpp -std=c++14
 	./main
 
-test: test.cpp
+test: test.cpp sudoku.hpp array.hpp
 	clang++ -o test test.cpp -std=c++14
 	./test
  

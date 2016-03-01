@@ -2,11 +2,16 @@
 #include <fstream>
 using namespace std;
 
+ostream& operator<<(ostream& stream, vector<int>& v) {
+  for (int e : v) {
+    stream << e << " ";
+  }
+  return stream;
+}
 template <typename T, int lines, int columns>
 class Array {
-  T array[lines][columns];
-
  public:
+  T array[lines][columns];
   Array() {}
   Array(T value) {
     for (int i = 0; i < lines; i++) {
@@ -36,5 +41,18 @@ class Array {
         this->array[i + start_lines][j + start_columns] = array.at(i, j);
       }
     }
+  }
+  bool operator==(Array<T, lines, columns>& other) {
+    for (int i = 0; i < lines; i++) {
+      for (int j = 0; j < columns; j++) {
+        if (other.at(i, j) != array[i][j]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+  bool operator!=(Array<T, lines, columns>& other) {
+    return not((*this) == other);
   }
 };
