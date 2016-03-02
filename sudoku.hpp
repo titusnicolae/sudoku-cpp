@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iterator>
 #include <vector>
 #include <stdexcept>
 #include <iterator>
@@ -45,6 +46,25 @@ set<int> operator-=(set<int>& first, set<int> second) {
     first.erase(e);
   }
   return first;
+}
+set<int> operator-(set<int>& first, set<int> second) {
+  set<int> ret;
+  for (auto& e : first) {
+    if(second.find(e) == second.end()){
+      ret.insert(e);
+    }
+  }
+  return ret;
+}
+
+set<int> intersect(set<int>& a, set<int>& b) {
+  set<int> ret;
+  for(int x: a) {
+    if(b.find(x)!=b.end()) {
+      ret.insert(x);
+    }
+  }
+  return ret;
 }
 
 vector<int> filter(const vector<int>& v, int n) {
@@ -366,6 +386,32 @@ class Sudoku {
       }
     }
   }
+  void naked_pair_line() {
+    for(int l=0;l<9;l++) {
+      map<int, set<int>> cols;  
+      for(int c=0;c<9;c++) {
+        for(auto& e: table.at(l/3,c/3).at(l%3, c%3)) {
+          cols[e].insert(c); 
+        } 
+      }
+      for(auto a = cols.begin(); a!=cols.end(); a++) {
+        for(auto b = next(a); b!=cols.end(); b++) {
+          if(intersect(a->second, b->second).size()==2) {
+            if(a->second.size()==3) {
+              int col = *((a->second - b->second).begin());
+              auto& possibilities = table.at(l/3,col/3).at(l%3,col%3);
+              possibilities = filter(possibilities, a->first);
+            } 
+            else if(b->second.size()==3) {
+              int col = *((b->second - a->second).begin());
+              auto& possibilities = table.at(l/3,col/3).at(l%3,col%3);
+              possibilities = filter(possibilities, b->first);
+            }
+          }
+        }
+      }
+    }
+  }
 
 
   void recompute_restrictions() {
@@ -375,6 +421,7 @@ class Sudoku {
     same_line_column();
     unique_in_line();
     unique_in_column();
+//    naked_pair_line();
   }
 
   bool operator!=(Sudoku& s) { return not(*this == s); }

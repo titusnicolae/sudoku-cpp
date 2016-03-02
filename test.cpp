@@ -105,7 +105,7 @@ TEST_CASE("solve newspaper sudoku", "[solve]") {
   Sudoku s({
     {5,2,0,7,0,9,0,0,1},
     {8,0,0,0,0,0,0,0,0},
-    {0,1,7,0,0,0,9,0,0},
+    {0,1,7,0,0,0,9,0,2},
     {0,8,0,9,0,1,6,0,5},
     {4,0,0,6,0,2,0,0,9},
     {1,0,6,3,0,8,0,2,0},
@@ -117,6 +117,11 @@ TEST_CASE("solve newspaper sudoku", "[solve]") {
 
   REQUIRE(s.is_valid() == 1);
 }
+TEST_CASE("set intersection") {
+  set<int> a({1,2,3});
+  set<int> b({1,2,3,4});
+  REQUIRE(intersect(a,b)==a);
+}
 
 TEST_CASE("check filter") {
   vector<int> v = {1,2,1,4,3,2};
@@ -124,4 +129,10 @@ TEST_CASE("check filter") {
   REQUIRE(filter(v,2)==vector<int>({1,1,4,3}));
   REQUIRE(filter(v,4)==vector<int>({1,2,1,3,2}));
   REQUIRE(filter(v,3)==vector<int>({1,2,1,4,2}));
+}
+
+TEST_CASE("check set subtraction") {
+  set<int> a({1,2,3,4});
+  set<int> b({1,2,3});
+  REQUIRE(a-b==set<int>({4}));
 }
