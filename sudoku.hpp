@@ -7,6 +7,23 @@
 #include <map>
 #include "array.hpp"
 #include <cassert>
+#define RESET   "\033[0m"
+#define BLACK   "\033[30m"      /* Black */
+#define RED     "\033[31m"      /* Red */
+#define GREEN   "\033[32m"      /* Green */
+#define YELLOW  "\033[33m"      /* Yellow */
+#define BLUE    "\033[34m"      /* Blue */
+#define MAGENTA "\033[35m"      /* Magenta */
+#define CYAN    "\033[36m"      /* Cyan */
+#define WHITE   "\033[37m"      /* White */
+#define BOLDBLACK   "\033[1m\033[30m"      /* Bold Black */
+#define BOLDRED     "\033[1m\033[31m"      /* Bold Red */
+#define BOLDGREEN   "\033[1m\033[32m"      /* Bold Green */
+#define BOLDYELLOW  "\033[1m\033[33m"      /* Bold Yellow */
+#define BOLDBLUE    "\033[1m\033[34m"      /* Bold Blue */
+#define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
+#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+#define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 using namespace std;
 
 typedef Array<vector<int>, 3, 3> Square;
@@ -28,6 +45,13 @@ set<int> operator-=(set<int>& first, set<int> second) {
     first.erase(e);
   }
   return first;
+}
+
+vector<int> filter(const vector<int>& v, int n) {
+  vector<int> res;
+  for(int x: v)
+    if(x!=n) res.push_back(x);
+  return res;
 }
 
 void print(set<int> s) {
@@ -90,9 +114,17 @@ class Sudoku {
       }
     }
 
+
     for (int i = 0; i < 8; i++) {
       for (int j = 0; j < 8; j++) {
         buffer.at(i * 4 + 3, j * 4 + 3) = '+';
+      }
+    }
+
+    for (int i = 0; i < 2; i++) {
+      for (int k = 0; k < N; k++) {
+        buffer.at(k, i * 12 + 11) = 'x';
+        buffer.at(i * 12 + 11, k) = 'x';
       }
     }
 
@@ -262,11 +294,89 @@ class Sudoku {
       }
     }
   }
+  void unique_in_line() {
+    for(int l=0;l<9;l++) {
+      map<int, set<int>> m;
+      for(int c=0;c<9;c++) {
+        for(int e: table.at(l/3,c/3).at(l%3,c%3)) {
+          m[e].insert(c);
+        }
+      }
+      for(auto& e: m) {
+        if (e.second.size()==1) {
+          int col = *(e.second.begin());
+          table.at(l/3, col/3).at(l%3, col%3) = {e.first};
+        }
+      }
+    }
+  }
+
+  void unique_in_column() {
+    for(int c=0;c<9;c++) {
+      map<int, set<int>> m;
+      for(int l=0;l<9;l++) {
+        for(int e: table.at(l/3,c/3).at(l%3,c%3)) {
+          m[e].insert(l);
+        }
+      }
+      for(auto& e: m) {
+        if (e.second.size()==1) {
+          int line = *(e.second.begin());
+          table.at(line/3, c/3).at(line%3, c%3) = {e.first};
+        }
+      }
+    }
+  }
+
+  void same_line_column() {
+    for(int lb: {0,1,2}) {
+      for(int cb: {0,1,2}) {
+        map<int, vector<int>> line;    
+        map<int, vector<int>> column;    
+        for(int l: {0,1,2}) {
+          for(int c: {0,1,2}) {
+            auto& possibilities=table.at(lb, cb).at(l, c);
+            for(int e: possibilities) {
+              line[e].push_back(3*lb+l);
+              column[e].push_back(3*cb+c);
+            }
+          }
+        }
+        for(auto& e: line) {
+          cout<<e.first<<", "<<cb<<": ";
+          for(int x: e.second) cout<<x<<" ";
+          cout<<endl;
+          if(e.second.size()>1 and set<int>(e.second.begin(), e.second.end()).size()==1) {
+            for(int i=0;i<9;i++)  {
+              if (i/3==cb) continue;
+              auto& possibilities = table.at(e.second[0]/3, i/3).at(e.second[0]%3, i%3);
+              possibilities = filter(possibilities, e.first);
+            } 
+          } 
+        }
+        for(auto& e: column) {
+          if(e.second.size()>1 and set<int>(e.second.begin(), e.second.end()).size()==1) {
+            for(int i=0;i<9;i++) {
+              if (i/3==lb) continue;
+              auto& possibilities = table.at(i/3, e.second[0]/3).at(i%3, e.second[0]%3);
+              possibilities = filter(possibilities, e.first);
+            }
+          } 
+        }
+      }
+    }
+  }
+
+
   void recompute_restrictions() {
     remove_options();
     first_pass_restrictions();
     unique_in_square();
+    same_line_column();
+    unique_in_line();
+    unique_in_column();
   }
+
   bool operator!=(Sudoku& s) { return not(*this == s); }
   bool operator==(Sudoku& s) {
     for (int l = 0; l < 9; l++) {
@@ -310,8 +420,10 @@ class Sudoku {
     Table prev;
     do {
       prev = table;
+      Sudoku tmp1(prev);
       recompute_restrictions();
-      Sudoku tmp(prev);
+      Sudoku tmp2(table);
+      cout<<tmp2;
     } while (prev != table);
   }
 

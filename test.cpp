@@ -92,6 +92,7 @@ TEST_CASE("equality inequality operators") {
 }
 
 TEST_CASE("solve newspaper sudoku", "[solve]") {
+  /*
   Sudoku s({{0, 0, 9, 4, 2, 1, 0, 0, 3},
             {1, 0, 3, 7, 5, 0, 2, 0, 0},
             {0, 0, 0, 0, 3, 8, 0, 0, 0},
@@ -100,8 +101,27 @@ TEST_CASE("solve newspaper sudoku", "[solve]") {
             {4, 0, 0, 1, 0, 0, 0, 0, 2},
             {0, 0, 0, 3, 4, 0, 0, 0, 0},
             {0, 0, 7, 0, 1, 6, 8, 0, 4},
-            {9, 0, 0, 0, 0, 5, 6, 0, 0}});
+            {9, 0, 0, 0, 0, 5, 6, 0, 0}});*/
+  Sudoku s({
+    {5,2,0,7,0,9,0,0,1},
+    {8,0,0,0,0,0,0,0,0},
+    {0,1,7,0,0,0,9,0,0},
+    {0,8,0,9,0,1,6,0,5},
+    {4,0,0,6,0,2,0,0,9},
+    {1,0,6,3,0,8,0,2,0},
+    {9,0,3,0,0,0,4,1,0},
+    {0,0,0,0,0,0,0,0,6},
+    {6,0,0,5,0,0,0,9,0}});
   s.solve();
-  cout << s;
+  s.first_pass_restrictions();
+
   REQUIRE(s.is_valid() == 1);
+}
+
+TEST_CASE("check filter") {
+  vector<int> v = {1,2,1,4,3,2};
+  REQUIRE(filter(v,1)==vector<int>({2,4,3,2}));
+  REQUIRE(filter(v,2)==vector<int>({1,1,4,3}));
+  REQUIRE(filter(v,4)==vector<int>({1,2,1,3,2}));
+  REQUIRE(filter(v,3)==vector<int>({1,2,1,4,2}));
 }
