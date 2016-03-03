@@ -534,7 +534,7 @@ class Sudoku {
 
   void recompute_restrictions() {
     first_pass_restrictions();
-    
+    for(int i = 0;i<10;i++) { 
     same_line_column();
 
     unique_in_column();
@@ -545,6 +545,7 @@ class Sudoku {
     naked_pair_line2();
     naked_pair_column();
     naked_pair_square();
+    }
   }
 
   bool operator!=(Sudoku& s) { return not(*this == s); }
