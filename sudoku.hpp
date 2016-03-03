@@ -25,17 +25,27 @@
 #define BOLDMAGENTA "\033[1m\033[35m"      /* Bold Magenta */
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
+#define DEBUG 0
 using namespace std;
 
 typedef Array<vector<int>, 3, 3> Square;
 typedef Array<Square, 3, 3> Table;
 
-class XY : pair<int, int> {
- public:
-  XY(int x, int y) : pair<int, int>(x, y) {}
-  int x() { return this->first; }
-  int y() { return this->second; }
+struct XY{
+  int x,y;
+  XY(int x, int y) : x(x),y(y){}
 };
+
+bool operator==(const XY& s1, const XY& s2) {
+  return s1.x==s2.x and s1.y==s2.y;
+}
+
+bool operator<(const XY& s1, const XY& s2) {
+  if (s1.x<s2.x) return true;
+  else if(s1.x>s2.x) return false;
+  if (s2.x<s2.y) return true;
+  return false;
+}
 
 std::random_device rd;
 std::mt19937 gen(rd());
@@ -71,6 +81,15 @@ vector<int> filter(const vector<int>& v, int n) {
   vector<int> res;
   for(int x: v)
     if(x!=n) res.push_back(x);
+  return res;
+}
+vector<int> filter_out(const vector<int>& v, const set<int>& s) {
+  vector<int> res;
+  for(int x: v) {
+    if(s.find(x)==s.end()) {
+      res.push_back(x);
+    }
+  } 
   return res;
 }
 
@@ -289,7 +308,7 @@ class Sudoku {
           s -= get_line(line);
           s -= get_col(col);
           s -= get_square(line / 3, col / 3);
-          std::copy(s.begin(), s.end(), std::back_inserter(e));
+          e = vector<int>(s.begin(), s.end());
         }
       }
     }
@@ -307,7 +326,7 @@ class Sudoku {
         }
         for (auto& e : m) {
           if (e.second.size() == 1) {
-            table.at(lb, cb).at(e.second[0].x(), e.second[0].y()) =
+            table.at(lb, cb).at(e.second[0].x, e.second[0].y) =
                 vector<int>{e.first};
           }
         }
@@ -342,6 +361,7 @@ class Sudoku {
       for(auto& e: m) {
         if (e.second.size()==1) {
           int line = *(e.second.begin());
+          if(DEBUG)cout<<"unique_in_column l: "<<line<<" c: "<<c<<" "<<e.first<<endl;
           table.at(line/3, c/3).at(line%3, c%3) = {e.first};
         }
       }
@@ -363,9 +383,6 @@ class Sudoku {
           }
         }
         for(auto& e: line) {
-          cout<<e.first<<", "<<cb<<": ";
-          for(int x: e.second) cout<<x<<" ";
-          cout<<endl;
           if(e.second.size()>1 and set<int>(e.second.begin(), e.second.end()).size()==1) {
             for(int i=0;i<9;i++)  {
               if (i/3==cb) continue;
@@ -386,7 +403,7 @@ class Sudoku {
       }
     }
   }
-  void naked_pair_line() {
+  void naked_pair_line() { //exactly two of each in te same place
     for(int l=0;l<9;l++) {
       map<int, set<int>> cols;  
       for(int c=0;c<9;c++) {
@@ -396,16 +413,106 @@ class Sudoku {
       }
       for(auto a = cols.begin(); a!=cols.end(); a++) {
         for(auto b = next(a); b!=cols.end(); b++) {
-          if(intersect(a->second, b->second).size()==2) {
-            if(a->second.size()==3) {
-              int col = *((a->second - b->second).begin());
+          if(a->second == b->second and a->second.size()==2) {
+            for(int col=0;col<9;col++) {
               auto& possibilities = table.at(l/3,col/3).at(l%3,col%3);
-              possibilities = filter(possibilities, a->first);
+              if(DEBUG){cout<<"naked_line l: "<<l<<"c: "<<col<<" ["<<a->first<<" "<<b->first<<"]\n";}
+              if(a->second.find(col)!=a->second.end())            for(int col: a->second) {
+                possibilities = vector<int>({a->first, b->first});
+              }
+              else {
+                possibilities = filter_out(possibilities, set<int>({a->first, b->first}));
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void naked_pair_line2() { //exactly two of each in te same place
+    for(int l=0;l<9;l++) {
+      for(int c1=0;c1<9;c1++) {
+        for(int c2=c1+1;c2<9;c2++) {
+          auto& poss1 = table.at(l/3,c1/3).at(l%3,c1%3);
+          auto& poss2 = table.at(l/3,c2/3).at(l%3,c2%3);
+
+          if(poss1 == poss2 and poss1.size()==2) {
+            for(int c3=0;c3<9;c3++) {
+              if(c3!=c1 && c3!=c2) {
+                auto& poss3= table.at(l/3,c3/3).at(l%3,c3%3);
+                poss3 = filter_out(poss3, set<int>(poss1.begin(), poss1.end()));
+              }
             } 
-            else if(b->second.size()==3) {
-              int col = *((b->second - a->second).begin());
-              auto& possibilities = table.at(l/3,col/3).at(l%3,col%3);
-              possibilities = filter(possibilities, b->first);
+          } 
+        }
+      }
+    }
+  }
+  void naked_pair_column() {
+    for(int c=0;c<9;c++) {
+      map<int, set<int>> rows;  
+      for(int l=0;l<9;l++) {
+        for(auto& e: table.at(l/3,c/3).at(l%3, c%3)) {
+          rows[e].insert(l); 
+        } 
+      }
+      for(auto a = rows.begin(); a!=rows.end(); a++) {
+        for(auto b = next(a); b!=rows.end(); b++) {
+          if(a->second == b->second and a->second.size()==2) {
+            for(int row=0;row<9;row++) {
+              auto& possibilities = table.at(row/3,c/3).at(row%3,c%3);
+              if(DEBUG) {cout<<"naked_col l: "<<row<<"c: "<<c<<" ["<<a->first<<" "<<b->first<<"]\n";}
+              if(a->second.find(row)!=a->second.end()) {
+                possibilities = vector<int>({a->first, b->first}); 
+              }
+              else {
+                possibilities = filter_out(possibilities, set<int>({a->first, b->first}));
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void naked_pair_square() { 
+    for(int lb: {0,1,2}) {
+      for(int cb: {0,1,2}) {
+        map<int, set<XY>> pos; 
+        for(int l: {0,1,2}) {
+          for(int c: {0,1,2}) {
+            for(int e: table.at(lb,cb).at(l,c)) {
+              pos[e].insert(XY(l, c));
+            }
+          }
+        }
+        for(auto a=pos.begin();a!=pos.end(); a++) {
+          for(auto b = next(a); b!=pos.end(); b++) {
+            if (a->second == b->second and a->second.size()==2) {
+              for(XY p: a->second) {
+                if(DEBUG){cout<<"naked_square l: "<<3*lb+p.x<<"c: "<<3*cb+p.y<<" ["<<a->first<<" "<<b->first<<"]\n";}
+                table.at(lb,cb).at(p.x, p.y) = vector<int>({a->first, b->first});
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for(int l=0;l<9;l++) {
+      map<int, set<int>> cols;  
+      for(int c=0;c<9;c++) {
+        for(auto& e: table.at(l/3,c/3).at(l%3, c%3)) {
+          cols[e].insert(c); 
+        } 
+      }
+      for(auto a = cols.begin(); a!=cols.end(); a++) {
+        for(auto b = next(a); b!=cols.end(); b++) {
+          if(a->second == b->second and a->second.size()==2) {
+            for(int col: a->second) {
+              auto& possibilities = table.at(l/3,col/3).at(l%3,col%3) = vector<int>({a->first, b->first});
+
             }
           }
         }
@@ -414,14 +521,22 @@ class Sudoku {
   }
 
 
+
   void recompute_restrictions() {
-    remove_options();
     first_pass_restrictions();
-    unique_in_square();
+    
     same_line_column();
+
     unique_in_line();
     unique_in_column();
-//    naked_pair_line();
+    unique_in_square();
+
+    naked_pair_line();
+    naked_pair_line2();
+    naked_pair_column();
+    naked_pair_square();
+
+    naked_pair_line();
   }
 
   bool operator!=(Sudoku& s) { return not(*this == s); }
@@ -470,7 +585,7 @@ class Sudoku {
       Sudoku tmp1(prev);
       recompute_restrictions();
       Sudoku tmp2(table);
-      cout<<tmp2;
+      cout<<tmp2<<endl;
     } while (prev != table);
   }
 

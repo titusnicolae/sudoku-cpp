@@ -136,3 +136,6 @@ TEST_CASE("check set subtraction") {
   set<int> b({1,2,3});
   REQUIRE(a-b==set<int>({4}));
 }
+TEST_CASE("filter out") {
+  REQUIRE(filter_out(vector<int>({1,2,3,4}), set<int>({1,4})) == vector<int>({2,3}));
+}
