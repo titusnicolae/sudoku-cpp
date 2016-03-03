@@ -124,7 +124,13 @@ class Sudoku {
     }
   }
   Square& at(int i, int j) { return table.at(i, j); }
+
   friend ostream& operator<<(ostream& stream, Sudoku& sudoku) {
+    stream<<sudoku.table;
+    return stream;
+  }
+
+  friend ostream& operator<<(ostream& stream, Table& table) {
     const int N = 35;
     Array<char, N, N> buffer(' ');
     for (int i : {0, 1, 2}) {
@@ -132,7 +138,7 @@ class Sudoku {
         for (int k : {0, 1, 2}) {
           for (int l : {0, 1, 2}) {
             vector<bool> v(10);
-            for (auto e : sudoku.table.at(i, j).at(k, l)) {
+            for (auto e : table.at(i, j).at(k, l)) {
               v[e] = true;
             }
             for (int m = 0; m < 9; m++) {
@@ -359,10 +365,14 @@ class Sudoku {
         }
       }
       for(auto& e: m) {
+        cout<<"unique_in_column c: "<<c<<" e: "<<e.first<<": ";
+        for(auto& vv: e.second) {cout<<vv<<" ";}
+        cout<<endl;
+
         if (e.second.size()==1) {
           int line = *(e.second.begin());
-          if(DEBUG)cout<<"unique_in_column l: "<<line<<" c: "<<c<<" "<<e.first<<endl;
-          table.at(line/3, c/3).at(line%3, c%3) = {e.first};
+          //cout<<"unique_in_column l: "<<line<<" c: "<<c<<" "<<e.first<<endl;
+          table.at(line/3, c/3).at(line%3, c%3) = vector<int>({e.first});
         }
       }
     }
@@ -527,16 +537,14 @@ class Sudoku {
     
     same_line_column();
 
-    unique_in_line();
     unique_in_column();
     unique_in_square();
+    unique_in_line();
 
     naked_pair_line();
     naked_pair_line2();
     naked_pair_column();
     naked_pair_square();
-
-    naked_pair_line();
   }
 
   bool operator!=(Sudoku& s) { return not(*this == s); }
@@ -582,10 +590,17 @@ class Sudoku {
     Table prev;
     do {
       prev = table;
-      Sudoku tmp1(prev);
+      cout<<"prev"<<endl<<prev<<endl;
       recompute_restrictions();
-      Sudoku tmp2(table);
-      cout<<tmp2<<endl;
+      cout<<"table"<<endl<<table<<endl;
+      for(int rr = 0;rr<9;rr++) {
+        cout<<rr<<": ";
+        for(auto& e: table.at(rr/3,2).at(rr%3,2)) {
+          cout<<e<<" ";
+        }
+        cout<<endl;
+      }
+      
     } while (prev != table);
   }
 
