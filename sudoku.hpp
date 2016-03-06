@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <iterator>
 #include <vector>
 #include <stdexcept>
@@ -114,6 +115,15 @@ class Sudoku {
       }
     }
   }
+  Sudoku(vector<vector<vector<int>>> v) {
+    assert(v.size() == 9);
+    for (auto& e : v) assert(e.size() == 9);
+    for (int l = 0; l < 9; l++) {
+      for (int c = 0; c < 9; c++) {
+        table.at(l / 3, c / 3).at(l % 3, c % 3) = v[l][c];
+      }
+    }
+  }
 
   Sudoku(Table a) { table = a; }
   Sudoku() {
@@ -128,6 +138,32 @@ class Sudoku {
   friend ostream& operator<<(ostream& stream, Sudoku& sudoku) {
     stream<<sudoku.table;
     return stream;
+  }
+
+  string to_string() {
+    stringstream ss;
+    ss<<"[";
+    for(int i=0;i<9;i++) {
+      ss<<"[";
+      for(int j=0;j<9;j++) {
+        auto& list = table.at(i/3,j/3).at(i%3,j%3);
+        if(list.size()==1) 
+          ss<<list[0];
+        else
+          ss<<0; 
+        if(j!=8)
+          ss<<", ";
+        else {
+          if(i!=8) 
+            ss<<"],"<<endl;
+          else
+            ss<<"]";
+        } 
+      }
+      if(i==8)
+        ss<<"]"<<endl;
+    } 
+    return ss.str();
   }
 
   friend ostream& operator<<(ostream& stream, Table& table) {
@@ -310,7 +346,11 @@ class Sudoku {
       for (int col = 0; col < 9; col++) {
         auto& e = table.at(line / 3, col / 3).at(line % 3, col % 3);
         if (e.size() != 1) {
-          set<int> s = one_to_nine;
+          set<int> s;
+          if(e.size()==0)
+            s = one_to_nine;
+          else
+            s = set<int>(e.begin(), e.end());
           s -= get_line(line);
           s -= get_col(col);
           s -= get_square(line / 3, col / 3);
@@ -319,6 +359,7 @@ class Sudoku {
       }
     }
   }
+
   void unique_in_square() {
     for (int lb : {0, 1, 2}) {
       for (int cb : {0, 1, 2}) {
@@ -365,9 +406,11 @@ class Sudoku {
         }
       }
       for(auto& e: m) {
-        cout<<"unique_in_column c: "<<c<<" e: "<<e.first<<": ";
-        for(auto& vv: e.second) {cout<<vv<<" ";}
-        cout<<endl;
+        if(DEBUG) {
+          cout<<"unique_in_column c: "<<c<<" e: "<<e.first<<": ";
+          for(auto& vv: e.second) {cout<<vv<<" ";}
+          cout<<endl;
+        }
 
         if (e.second.size()==1) {
           int line = *(e.second.begin());
@@ -533,19 +576,16 @@ class Sudoku {
 
 
   void recompute_restrictions() {
-    first_pass_restrictions();
-    for(int i = 0;i<10;i++) { 
-    same_line_column();
+      first_pass_restrictions();
+      same_line_column();
+      unique_in_column();
+      unique_in_square();
 
-    unique_in_column();
-    unique_in_square();
-    unique_in_line();
-
-    naked_pair_line();
-    naked_pair_line2();
-    naked_pair_column();
-    naked_pair_square();
-    }
+      unique_in_line();
+      naked_pair_line();
+      naked_pair_line2();
+      naked_pair_column();
+      naked_pair_square();
   }
 
   bool operator!=(Sudoku& s) { return not(*this == s); }
@@ -591,15 +631,15 @@ class Sudoku {
     Table prev;
     do {
       prev = table;
-      cout<<"prev"<<endl<<prev<<endl;
+      if(DEBUG) {cout<<"prev"<<endl<<prev<<endl;}
       recompute_restrictions();
-      cout<<"table"<<endl<<table<<endl;
+      if(DEBUG) {cout<<"table"<<endl<<table<<endl;}
       for(int rr = 0;rr<9;rr++) {
-        cout<<rr<<": ";
+        if(DEBUG) {cout<<rr<<": ";}
         for(auto& e: table.at(rr/3,2).at(rr%3,2)) {
-          cout<<e<<" ";
+          if(DEBUG) {cout<<e<<" ";}
         }
-        cout<<endl;
+        if(DEBUG) {cout<<endl;}
       }
       
     } while (prev != table);

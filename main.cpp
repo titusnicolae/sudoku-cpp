@@ -7,17 +7,26 @@ bool solvable(Sudoku s) {
 
 int main() {
   Sudoku s, tmp;
+  for(int j = 0; j<32;j++) {
+    cout<<j<<endl;
+    s.shuffle(10000);
+    bool flag = true;
+    for (int i = 0; i < 54; i++) {
+      do {
+        tmp = s;
+        tmp.remove(1);
+      } while (not solvable(tmp));
+      s = tmp;
+    }
+    ofstream puzzle("output/out"+to_string(j)+".puzzle");
+    puzzle<<s.to_string();
+    puzzle.close();
 
-  s.shuffle(10000);
-  bool flag = true;
-  for (int i = 0; i < 54; i++) {
-    do {
-      tmp = s;
-      tmp.remove(1);
-    } while (not solvable(tmp));
-    s = tmp;
+    s.solve();
+
+    ofstream solution("output/out"+to_string(j)+".solution");
+    solution<<s.to_string();
+    solution.close();
   }
-  s.solve();
-
   return 0;
 }
