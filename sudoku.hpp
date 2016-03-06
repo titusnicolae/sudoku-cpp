@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iterator>
 #include <vector>
+#include <functional>
 #include <stdexcept>
 #include <iterator>
 #include <algorithm>
@@ -27,6 +28,7 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 #define DEBUG 0
+#define AA 1
 using namespace std;
 
 typedef Array<vector<int>, 3, 3> Square;
@@ -342,6 +344,7 @@ class Sudoku {
   }
 
   void first_pass_restrictions() {
+    if(AA) cout<<"first_pass_restrictions"<<endl;
     for (int line = 0; line < 9; line++) {
       for (int col = 0; col < 9; col++) {
         auto& e = table.at(line / 3, col / 3).at(line % 3, col % 3);
@@ -361,6 +364,7 @@ class Sudoku {
   }
 
   void unique_in_square() {
+    if(AA) cout<<"unique_in_square"<<endl;
     for (int lb : {0, 1, 2}) {
       for (int cb : {0, 1, 2}) {
         map<int, vector<XY>> m;
@@ -381,6 +385,7 @@ class Sudoku {
     }
   }
   void unique_in_line() {
+    if(AA) cout<<"unique_in_line"<<endl;
     for(int l=0;l<9;l++) {
       map<int, set<int>> m;
       for(int c=0;c<9;c++) {
@@ -398,6 +403,7 @@ class Sudoku {
   }
 
   void unique_in_column() {
+    if(AA) cout<<"unique_in_column"<<endl;
     for(int c=0;c<9;c++) {
       map<int, set<int>> m;
       for(int l=0;l<9;l++) {
@@ -422,6 +428,7 @@ class Sudoku {
   }
 
   void same_line_column() {
+    if(AA) cout<<"same_line_column"<<endl;
     for(int lb: {0,1,2}) {
       for(int cb: {0,1,2}) {
         map<int, vector<int>> line;    
@@ -457,6 +464,7 @@ class Sudoku {
     }
   }
   void naked_pair_line() { //exactly two of each in te same place
+    if(AA) cout<<"naked_pair_line"<<endl;
     for(int l=0;l<9;l++) {
       map<int, set<int>> cols;  
       for(int c=0;c<9;c++) {
@@ -484,6 +492,7 @@ class Sudoku {
   }
 
   void naked_pair_line2() { //exactly two of each in te same place
+    if(AA) cout<<"naked_pair_line2"<<endl;
     for(int l=0;l<9;l++) {
       for(int c1=0;c1<9;c1++) {
         for(int c2=c1+1;c2<9;c2++) {
@@ -503,6 +512,7 @@ class Sudoku {
     }
   }
   void naked_pair_column() {
+    if(AA) cout<<"naked_pair_column"<<endl;
     for(int c=0;c<9;c++) {
       map<int, set<int>> rows;  
       for(int l=0;l<9;l++) {
@@ -530,6 +540,7 @@ class Sudoku {
   }
 
   void naked_pair_square() { 
+    if(AA) cout<<"naked_pair_square"<<endl;
     for(int lb: {0,1,2}) {
       for(int cb: {0,1,2}) {
         map<int, set<XY>> pos; 
@@ -552,7 +563,7 @@ class Sudoku {
         }
       }
     }
-
+    /*
     for(int l=0;l<9;l++) {
       map<int, set<int>> cols;  
       for(int c=0;c<9;c++) {
@@ -570,22 +581,30 @@ class Sudoku {
           }
         }
       }
-    }
+    }*/
   }
 
 
 
   void recompute_restrictions() {
-      first_pass_restrictions();
-      same_line_column();
-      unique_in_column();
-      unique_in_square();
-
-      unique_in_line();
-      naked_pair_line();
-      naked_pair_line2();
-      naked_pair_column();
-      naked_pair_square();
+    vector<function<void(void)>> solvers = {
+      bind(&Sudoku::first_pass_restrictions, this),
+      bind(&Sudoku::same_line_column, this),
+      bind(&Sudoku::unique_in_column, this),
+      bind(&Sudoku::unique_in_square, this),
+      bind(&Sudoku::unique_in_line, this),
+      bind(&Sudoku::naked_pair_line, this),
+      bind(&Sudoku::naked_pair_line2, this),
+      bind(&Sudoku::naked_pair_column, this),
+      bind(&Sudoku::naked_pair_square, this),
+    };
+    for(auto& e: solvers) {
+      Sudoku prev = *this;
+      e();
+      if(*this!=prev) {
+        cout<<*this<<endl;
+      }
+    }
   }
 
   bool operator!=(Sudoku& s) { return not(*this == s); }

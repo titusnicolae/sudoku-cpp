@@ -43,6 +43,7 @@ class Array {
   friend ostream& operator<<(ostream& stream, Array<T, lines, columns>& array) {
     for (int i = 0; i < lines; i++) {
       for (int j = 0; j < columns; j++) {
+        /*
         switch (array.at(i,j)) {
           default: stream<<WHITE;break;
           case '1': stream<<GREEN;break;
@@ -51,7 +52,7 @@ class Array {
           case '4': stream<<YELLOW;break;
           case '5': stream<<BLUE;break;
           case '8': stream<<RED;break;
-        }
+        }*/
         stream << array.at(i, j);
       }
       stream << endl;

@@ -109,7 +109,7 @@ TEST_CASE("solve newspaper from halfway", "[solve]") {
   cout<<s;
   REQUIRE(s.is_valid() == 1);
 } */
-  
+ /* 
 TEST_CASE("solve newspaper sudoku", "[solve]") {
   Sudoku s({
     {5,2,4,7,0,9,0,6,1},
@@ -140,7 +140,25 @@ TEST_CASE("solve newspaper sudoku 21", "[solve]") {
   cout<<s;
   REQUIRE(s.is_valid() == 1);
 }
+*/
 
+TEST_CASE("asd") {
+  Sudoku s({
+    {0, 5, 3, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 4},
+    {7, 8, 6, 4, 5, 3, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0, 0},
+    {0, 4, 2, 9, 1, 0, 0, 0, 6},
+    {0, 7, 0, 3, 4, 2, 0, 8, 0},
+    {0, 0, 7, 0, 0, 0, 0, 1, 2},
+    {0, 0, 0, 0, 3, 0, 0, 0, 0},
+    {2, 0, 1, 0, 9, 0, 6, 0, 0}});
+  s.solve();
+  cout<<s;
+  REQUIRE(s.is_valid()==1);
+}
+
+/*
 TEST_CASE("set intersection") {
   set<int> a({1,2,3});
   set<int> b({1,2,3,4});
@@ -163,3 +181,4 @@ TEST_CASE("check set subtraction") {
 TEST_CASE("filter out") {
   REQUIRE(filter_out(vector<int>({1,2,3,4}), set<int>({1,4})) == vector<int>({2,3}));
 }
+*/
