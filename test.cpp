@@ -140,7 +140,6 @@ TEST_CASE("solve newspaper sudoku 21", "[solve]") {
   cout<<s;
   REQUIRE(s.is_valid() == 1);
 }
-*/
 
 TEST_CASE("asd") {
   Sudoku s({
@@ -157,8 +156,42 @@ TEST_CASE("asd") {
   cout<<s;
   REQUIRE(s.is_valid()==1);
 }
+*/
 
-/*
+TEST_CASE("XY set") {
+  set<XY> xy;
+  for(int x=0;x<1000;x++) {
+    for(int y=0;y<1000;y++) {
+      xy.insert(XY(x,y)); 
+    }
+  }
+  REQUIRE(xy.size()==1000*1000);
+}
+
+TEST_CASE("moderate", "[solve]") {
+  //todo pointing pairs
+  Sudoku s({
+    {4, 0, 0, 0, 1, 0, 0, 0, 0},
+    {0, 0, 0, 3, 0, 9, 0, 4, 0},
+    {0, 7, 0, 0, 0, 5, 0, 0, 9},
+    {0, 0, 0, 0, 6, 0, 0, 2, 1},
+    {0, 0, 4, 0, 7, 0, 6, 0, 0},
+    {1, 9, 0, 0, 5, 0, 0, 0, 0},
+    {9, 0, 0, 4, 0, 0, 0, 7, 0},
+    {0, 3, 0, 6, 0, 8, 0, 0, 0},
+    {0, 0, 0, 0, 3, 0, 0, 0, 6}});
+  s.solve();
+  cout<<s;
+  REQUIRE(s.is_valid()==1);
+}
+
+TEST_CASE("set of XY", "datastructure") {
+  set<XY> xy;
+  for(int i=0;i<1000;i++) {
+    xy.insert(XY(i,i));
+  }
+  REQUIRE(xy.size()==1000);   
+}
 TEST_CASE("set intersection") {
   set<int> a({1,2,3});
   set<int> b({1,2,3,4});
@@ -181,4 +214,4 @@ TEST_CASE("check set subtraction") {
 TEST_CASE("filter out") {
   REQUIRE(filter_out(vector<int>({1,2,3,4}), set<int>({1,4})) == vector<int>({2,3}));
 }
-*/
+

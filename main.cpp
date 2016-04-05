@@ -7,7 +7,7 @@ bool solvable(Sudoku s) {
 
 int main() {
   Sudoku s, tmp;
-  for(int j = 0; j<32;j++) {
+  for(int j = 0; j<2;j++) {
     cout<<j<<endl;
     s.shuffle(10000);
     bool flag = true;
@@ -27,6 +27,7 @@ int main() {
     ofstream solution("output/out"+to_string(j)+".solution");
     solution<<s.to_string();
     solution.close();
+    cout<<"------------"<<endl;
   }
   return 0;
 }

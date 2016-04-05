@@ -46,7 +46,7 @@ bool operator==(const XY& s1, const XY& s2) {
 bool operator<(const XY& s1, const XY& s2) {
   if (s1.x<s2.x) return true;
   else if(s1.x>s2.x) return false;
-  if (s2.x<s2.y) return true;
+  if (s1.y<s2.y) return true;
   return false;
 }
 
@@ -463,50 +463,27 @@ class Sudoku {
       }
     }
   }
-  void naked_pair_line() { //exactly two of each in te same place
-    if(AA) cout<<"naked_pair_line"<<endl;
-    for(int l=0;l<9;l++) {
-      map<int, set<int>> cols;  
-      for(int c=0;c<9;c++) {
-        for(auto& e: table.at(l/3,c/3).at(l%3, c%3)) {
-          cols[e].insert(c); 
-        } 
-      }
-      for(auto a = cols.begin(); a!=cols.end(); a++) {
-        for(auto b = next(a); b!=cols.end(); b++) {
-          if(a->second == b->second and a->second.size()==2) {
-            for(int col=0;col<9;col++) {
-              auto& possibilities = table.at(l/3,col/3).at(l%3,col%3);
-              if(DEBUG){cout<<"naked_line l: "<<l<<"c: "<<col<<" ["<<a->first<<" "<<b->first<<"]\n";}
-              if(a->second.find(col)!=a->second.end())            for(int col: a->second) {
-                possibilities = vector<int>({a->first, b->first});
-              }
-              else {
-                possibilities = filter_out(possibilities, set<int>({a->first, b->first}));
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
   void naked_pair_line2() { //exactly two of each in te same place
     if(AA) cout<<"naked_pair_line2"<<endl;
     for(int l=0;l<9;l++) {
-      for(int c1=0;c1<9;c1++) {
-        for(int c2=c1+1;c2<9;c2++) {
-          auto& poss1 = table.at(l/3,c1/3).at(l%3,c1%3);
-          auto& poss2 = table.at(l/3,c2/3).at(l%3,c2%3);
+      map<int, set<int>> line;
+      for(int c=0;c<9;c++) {
+        for(auto& e: table.at(l/3, c/3).at(l%3, c%3)){
+          line[c].insert(e);
+        }
+      }
+      for(auto a=line.begin();a!=line.end(); a++) {
+        for(auto b=next(a); b!=line.end(); b++) {
+          if(a->second == b->second and a->second.size()==2) {
+            cout<<"woohoo "<<l<<" "<<a->first<<" "<<b->first<<endl;
 
-          if(poss1 == poss2 and poss1.size()==2) {
-            for(int c3=0;c3<9;c3++) {
-              if(c3!=c1 && c3!=c2) {
-                auto& poss3= table.at(l/3,c3/3).at(l%3,c3%3);
-                poss3 = filter_out(poss3, set<int>(poss1.begin(), poss1.end()));
+            for(int c2=0; c2<9;c2++) {
+              if(!(c2==a->first or c2==b->first)){
+                cout<<"\t"<<l<<" "<<c2<<endl;
+                table.at(l/3,c2/3).at(l%3, c2%2) = filter_out(table.at(l/3,c2/3).at(l%3,c2%3), a->second);
               }
-            } 
-          } 
+            }
+          }
         }
       }
     }
@@ -539,25 +516,30 @@ class Sudoku {
     }
   }
 
-  void naked_pair_square() { 
+  void naked_pair_square() {
+    cout<<*this;
     if(AA) cout<<"naked_pair_square"<<endl;
     for(int lb: {0,1,2}) {
       for(int cb: {0,1,2}) {
-        map<int, set<XY>> pos; 
+        map<XY, set<int>> pos; 
         for(int l: {0,1,2}) {
           for(int c: {0,1,2}) {
             for(int e: table.at(lb,cb).at(l,c)) {
-              pos[e].insert(XY(l, c));
+              pos[XY(l,c)].insert(e);
             }
           }
         }
+
         for(auto a=pos.begin();a!=pos.end(); a++) {
           for(auto b = next(a); b!=pos.end(); b++) {
-            if (a->second == b->second and a->second.size()==2) {
-              for(XY p: a->second) {
-                if(DEBUG){cout<<"naked_square l: "<<3*lb+p.x<<"c: "<<3*cb+p.y<<" ["<<a->first<<" "<<b->first<<"]\n";}
-                table.at(lb,cb).at(p.x, p.y) = vector<int>({a->first, b->first});
-              }
+            if(a->second == b->second and a->second.size()==b->second.size() and a->second.size()==2) {
+              for(int l: {0,1,2}) {
+                for(int c: {0,1,2}) {
+                  if(!((a->first.x==l and a->first.y==c) or (b->first.x==l and b->first.y==c))){
+                    filter_out(table.at(lb,cb).at(l,c), a->second);
+                  }
+                }
+              }  
             }
           }
         }
@@ -593,7 +575,6 @@ class Sudoku {
       bind(&Sudoku::unique_in_column, this),
       bind(&Sudoku::unique_in_square, this),
       bind(&Sudoku::unique_in_line, this),
-      bind(&Sudoku::naked_pair_line, this),
       bind(&Sudoku::naked_pair_line2, this),
       bind(&Sudoku::naked_pair_column, this),
       bind(&Sudoku::naked_pair_square, this),
