@@ -28,7 +28,7 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 #define DEBUG 0
-#define AA 1
+#define AA 0
 using namespace std;
 
 typedef Array<vector<int>, 3, 3> Square;
@@ -360,7 +360,6 @@ class Sudoku {
   }
 
   void first_pass_restrictions() {
-    cout<<*this<<endl;
     if(AA) cout<<"first_pass_restrictions"<<endl;
     for (int line = 0; line < 9; line++) {
       for (int col = 0; col < 9; col++) {
@@ -431,8 +430,6 @@ class Sudoku {
       for(auto& e: m) {
         if(DEBUG) {
           cout<<"unique_in_column c: "<<c<<" e: "<<e.first<<": ";
-          for(auto& vv: e.second) {cout<<vv<<" ";}
-          cout<<endl;
         }
 
         if (e.second.size()==1) {
@@ -492,11 +489,8 @@ class Sudoku {
       for(auto a=line.begin();a!=line.end(); a++) {
         for(auto b=next(a); b!=line.end(); b++) {
           if(a->second == b->second and a->second.size()==2) {
-            cout<<"woohoo "<<l<<" "<<a->first<<" "<<b->first<<endl;
-
             for(int c2=0; c2<9;c2++) {
               if(!(c2==a->first or c2==b->first)){
-                cout<<"\t"<<l<<" "<<c2<<endl;
                 table.at(l/3,c2/3).at(l%3, c2%3) = filter_out(table.at(l/3,c2/3).at(l%3,c2%3), a->second);
               }
             }
@@ -583,7 +577,6 @@ class Sudoku {
   }
 
   void naked_pair_square() {
-    cout<<*this;
     if(AA) cout<<"naked_pair_square"<<endl;
     for(int lb: {0,1,2}) {
       for(int cb: {0,1,2}) {
@@ -651,7 +644,7 @@ class Sudoku {
       Sudoku prev = *this;
       e();
       if(*this!=prev) {
-        cout<<*this<<endl;
+        //cout<<*this<<endl;
       }
     }
   }
