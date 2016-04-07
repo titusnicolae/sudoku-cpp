@@ -54,6 +54,22 @@ std::random_device rd;
 std::mt19937 gen(rd());
 set<int> one_to_nine({1, 2, 3, 4, 5, 6, 7, 8, 9});
 
+int max(set<int> s) {
+  int ret = *s.begin();
+  for(auto& e: s) {
+    ret = max(e,ret);
+  }
+  return ret;
+}
+
+int min(set<int> s) {
+  int ret = *s.begin();
+  for(auto& e: s) {
+    ret = min(e,ret);
+  }
+  return ret;
+}
+
 set<int> operator-=(set<int>& first, set<int> second) {
   for (auto& e : second) {
     first.erase(e);
@@ -344,6 +360,7 @@ class Sudoku {
   }
 
   void first_pass_restrictions() {
+    cout<<*this<<endl;
     if(AA) cout<<"first_pass_restrictions"<<endl;
     for (int line = 0; line < 9; line++) {
       for (int col = 0; col < 9; col++) {
@@ -480,7 +497,7 @@ class Sudoku {
             for(int c2=0; c2<9;c2++) {
               if(!(c2==a->first or c2==b->first)){
                 cout<<"\t"<<l<<" "<<c2<<endl;
-                table.at(l/3,c2/3).at(l%3, c2%2) = filter_out(table.at(l/3,c2/3).at(l%3,c2%3), a->second);
+                table.at(l/3,c2/3).at(l%3, c2%3) = filter_out(table.at(l/3,c2/3).at(l%3,c2%3), a->second);
               }
             }
           }
@@ -488,6 +505,31 @@ class Sudoku {
       }
     }
   }
+
+  void box_line_column() {
+    for(int c = 0;c<9;c++) {
+      map<int, set<int>> pos;  
+      for(int l = 0;l<9;l++) {
+        for(auto& e: table.at(l/3, c/3).at(l%3, c%3)){
+          pos[e].insert(l);
+        }
+      }
+      for(auto& e: pos) {
+        for(int lb=0;lb<3;lb++) {
+          if(lb*3<=min(e.second) and max(e.second)<=lb*3+2) {
+            for(int l=0;l<=2;l++) {
+              for(int cb=0;cb<=2;cb++) {
+                if(c%3!=cb) {
+                  table.at(lb,c/3).at(l,cb) = filter_out(table.at(lb,c/3).at(l,cb), set<int>({e.first}));
+                }
+              }
+            }
+          }
+        }
+      }
+    } 
+  } 
+
   void naked_pair_column() {
     if(AA) cout<<"naked_pair_column"<<endl;
     for(int c=0;c<9;c++) {
@@ -508,6 +550,30 @@ class Sudoku {
               }
               else {
                 possibilities = filter_out(possibilities, set<int>({a->first, b->first}));
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  void hidden_pair_square() {
+    for(int lb: {0,1,2}) {
+      for(int cb: {0,1,2}) {
+        map<int, set<XY>> pos; 
+        for(int l: {0,1,2}) {
+          for(int c: {0,1,2}) {
+            for(int e: table.at(lb,cb).at(l,c)) {
+              pos[e].insert(XY(l,c));
+            }
+          }
+        }
+      
+        for(auto a=pos.begin();a!=pos.end(); a++) {
+          for(auto b = next(a); b!=pos.end(); b++) {
+            if(a->second == b->second and a->second.size()==2) {
+              for(auto& e: a->second) {
+                table.at(lb,cb).at(e.x, e.y) = vector<int>{a->first, b->first}; 
               }
             }
           }
@@ -578,6 +644,8 @@ class Sudoku {
       bind(&Sudoku::naked_pair_line2, this),
       bind(&Sudoku::naked_pair_column, this),
       bind(&Sudoku::naked_pair_square, this),
+      bind(&Sudoku::hidden_pair_square, this),
+      bind(&Sudoku::box_line_column, this),
     };
     for(auto& e: solvers) {
       Sudoku prev = *this;
@@ -641,7 +709,6 @@ class Sudoku {
         }
         if(DEBUG) {cout<<endl;}
       }
-      
     } while (prev != table);
   }
 

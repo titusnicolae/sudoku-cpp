@@ -7,7 +7,7 @@ bool solvable(Sudoku s) {
 
 int main() {
   Sudoku s, tmp;
-  for(int j = 0; j<2;j++) {
+  for(int j = 0; j<8;j++) {
     cout<<j<<endl;
     s.shuffle(10000);
     bool flag = true;

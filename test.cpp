@@ -185,6 +185,7 @@ TEST_CASE("moderate", "[solve]") {
   REQUIRE(s.is_valid()==1);
 }
 
+
 TEST_CASE("set of XY", "datastructure") {
   set<XY> xy;
   for(int i=0;i<1000;i++) {
@@ -204,6 +205,10 @@ TEST_CASE("check filter") {
   REQUIRE(filter(v,2)==vector<int>({1,1,4,3}));
   REQUIRE(filter(v,4)==vector<int>({1,2,1,3,2}));
   REQUIRE(filter(v,3)==vector<int>({1,2,1,4,2}));
+}
+TEST_CASE("max min set") {
+  REQUIRE(max(set<int>({3,4,5}))==5);
+  REQUIRE(min(set<int>({3,4,5}))==3);
 }
 
 TEST_CASE("check set subtraction") {
